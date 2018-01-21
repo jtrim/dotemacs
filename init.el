@@ -11,7 +11,7 @@
     ("a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" "84e39ed4c552b75e1cb09458c140a9b025598002533456b4c27db31d27e1e0d7" "b571f92c9bfaf4a28cb64ae4b4cdbda95241cd62cf07d942be44dc8f46c491f4" "c74e83f8aa4c78a121b52146eadb792c9facc5b1f02c917e3dbb454fca931223" "b9e9ba5aeedcc5ba8be99f1cc9301f6679912910ff92fdf7980929c2fc83ab4d" "84d2f9eeb3f82d619ca4bfffe5f157282f4779732f48a5ac1484d94d5ff5b279" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" default)))
  '(package-selected-packages
    (quote
-    (rubocop flycheck nyan-mode spaceline helm-ag yaml-mode company magit rspec-mode inf-ruby phoenix-dark-pink-theme molokai-theme inkpot-theme smart-mode-line powerline yasnippet helm helm-ebdb golden-ratio))))
+    (buffer-move rubocop flycheck nyan-mode spaceline helm-ag yaml-mode company magit rspec-mode inf-ruby phoenix-dark-pink-theme molokai-theme inkpot-theme smart-mode-line powerline yasnippet helm helm-ebdb golden-ratio))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -103,6 +103,7 @@
   (tool-bar-mode -1)
   (scroll-bar-mode -1)
   (global-linum-mode 1)
+  (show-paren-mode 1)
 
   (set-face-attribute 'default t :font "Hack-10")
 
@@ -123,7 +124,8 @@
   (require 'package)
 
   (defvar package-list)
-  (setq package-list '(company
+  (setq package-list '(buffer-move
+                       company
                        fill-column-indicator
                        flycheck
                        golden-ratio
@@ -160,6 +162,11 @@
 
   ;;;
   ;; Package Configuration
+
+  ;;;;
+  ;;; buffer-move
+  (require 'buffer-move)
+  (buffer-move)
 
   ;;;;
   ;;; fill-column-indicator
@@ -220,6 +227,9 @@
   ;;;;
   ;;; Helm
   (require 'helm)
+  (require 'helm-ag)
+  (require 'helm-ring)
+
   (helm-mode)
   (global-set-key (kbd "M-x") 'helm-M-x)
   (global-set-key (kbd "M-y") 'helm-show-kill-ring)
@@ -228,7 +238,6 @@
   (define-key global-map [remap find-tag]              'helm-etags-select)
   (define-key global-map [remap xref-find-definitions] 'helm-etags-select)
   (define-key helm-find-files-map "\t" 'helm-execute-persistent-action)
-  (require 'helm-ag)
 
   ;;;;
   ;;; Golden Ratio
