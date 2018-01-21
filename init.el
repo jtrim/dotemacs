@@ -19,64 +19,8 @@
  ;; If there is more than one, they won't work right.
  )
 
-;;;
-;; Helper functions
-
-(defun parse-database-url (database-url)
-  (let ((parsed-url
-         (mapcar (lambda (s) (string-trim s))
-                 (s-split "[@:/]"
-                          (s-replace "postgres://" "" database-url))))
-        (h (make-hash-table)))
-    (puthash :user (first parsed-url) h)
-    (puthash :password (second parsed-url) h)
-    (puthash :host (third parsed-url) h)
-    (puthash :port (first (last (butlast parsed-url))) h)
-    (puthash :database (first (last parsed-url)) h)
-    h))
-
-(defun pivotal-tracker-number-from-branch-list (branch-list)
-  (first (s-split "-" (string-trim (first (last (s-split " " (seq-find (lambda (line) (s-starts-with? "*" line)) (s-split "\n" branch-list)))))))))
-
-(defun pivotal-tracker-number-from-current-branch ()
-  (pivotal-tracker-number-from-branch-list (shell-command-to-string "git branch")))
-
-(defun pascal-case-name-from-file-name (filename)
-  (let ((terminus (f-filename filename)))
-    (s-join ""
-            (mapcar 'capitalize
-                    (s-split "[_]" (first (s-split "[.]" terminus)))))))
-
-(defun adjust-number-at-point (adj-fn)
-  (interactive)
-  (skip-chars-backward "0-9")
-  (or (looking-at "[0-9]+")
-      (error "No number at point"))
-  (replace-match (number-to-string (apply adj-fn (list (string-to-number (match-string 0)) 1)))))
-
-(defun increment-number-at-point ()
-  (interactive)
-  (adjust-number-at-point '+))
-
-(defun decrement-number-at-point ()
-  (interactive)
-  (adjust-number-at-point '-))
-
-(defmacro -> (&rest body)
-  (let ((result (pop body)))
-    (dolist (form body result)
-      (setq result (append (list (car form) result)
-                           (cdr form))))))
-
-(defmacro ->> (&rest body)
-  (let ((result (pop body)))
-    (dolist (form body result)
-      (setq result (append form (list result))))))
-
-(defun pop-tag ()
-  (interactive)
-  (xref-pop-marker-stack)
-  (funcall (key-binding (kbd "C-l"))))
+(add-to-list 'load-path (concat user-emacs-directory (convert-standard-filename "src/")))
+(load "helper.el")
 
 ;; ==================
 ;; User Configuration
@@ -166,7 +110,6 @@
   ;;;;
   ;;; buffer-move
   (require 'buffer-move)
-  (buffer-move)
 
   ;;;;
   ;;; fill-column-indicator
@@ -229,7 +172,6 @@
   (require 'helm)
   (require 'helm-ag)
   (require 'helm-ring)
-
   (helm-mode)
   (global-set-key (kbd "M-x") 'helm-M-x)
   (global-set-key (kbd "M-y") 'helm-show-kill-ring)
@@ -238,6 +180,11 @@
   (define-key global-map [remap find-tag]              'helm-etags-select)
   (define-key global-map [remap xref-find-definitions] 'helm-etags-select)
   (define-key helm-find-files-map "\t" 'helm-execute-persistent-action)
+  (add-to-list 'display-buffer-alist
+               `(,(rx bos "*helm" (* not-newline) "*" eos)
+                 (display-buffer-in-side-window)
+                 (inhibit-same-window . t)
+                 (window-height . 0.4)))
 
   ;;;;
   ;;; Golden Ratio
