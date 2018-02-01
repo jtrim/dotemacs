@@ -56,3 +56,11 @@
   (interactive)
   (xref-pop-marker-stack)
   (funcall (key-binding (kbd "C-l"))))
+
+(defun kill-ring-save-line ()
+  (interactive))
+
+(defun open-config-file ()
+  (interactive)
+  (split-window-right)
+  (find-file (s-concat user-emacs-directory "src/config.el")))
