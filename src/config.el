@@ -43,10 +43,36 @@
   (require 'package)
 
   (defvar package-list)
-  (setq package-list '(ag buffer-move company expand-region fill-column-indicator flycheck golden-ratio helm helm-ag
-                       helm-projectile iedit inf-ruby magit markdown-mode nyan-mode projectile rainbow-delimiters
-                       rspec-mode rubocop smart-mode-line smartparens spaceline spacemacs-theme yaml-mode yasnippet
-                       magit-gh-pulls build-status))
+  (setq package-list '(
+                       ag
+                       buffer-move
+                       company
+                       expand-region
+                       fill-column-indicator
+                       flycheck
+                       golden-ratio
+                       helm
+                       helm-ag
+                       helm-projectile
+                       iedit
+                       inf-ruby
+                       magit
+                       nyan-mode
+                       projectile
+                       spaceline
+                       spacemacs-theme
+                       magit-gh-pulls
+                       markdown-mode
+                       rainbow-delimiters
+                       rspec-mode
+                       rubocop
+                       smart-mode-line
+                       smartparens
+                       yaml-mode
+                       yasnippet
+                       build-status
+                       coffee-mode
+                       ))
 
   (add-to-list 'package-archives
                '("melpa" . "https://melpa.org/packages/") t)
@@ -62,6 +88,18 @@
 
   ;;;
   ;; Package Configuration
+
+  ;;;;
+  ;;; coffee-mode
+  (require 'coffee-mode)
+
+  ;;;;
+  ;;; buffer-move
+  (require 'buffer-move)
+
+  ;;;;
+  ;;; expand-region
+  (require 'expand-region)
 
   ;;;;
   ;;; build-status
@@ -158,7 +196,6 @@
 
   ;;;;
   ;;; Theme
-
   (load-theme 'spacemacs-dark t)
 
   ;;;;
@@ -187,7 +224,7 @@
 
   ;;;;
   ;;; Golden Ratio
-  (golden-ratio-mode)
+  ;; (golden-ratio-mode) ;; this still needs some tuning
 
   ;;;;
   ;;; Smartparens
@@ -197,21 +234,29 @@
   ;;; magit
   (require 'magit)
   (require 'magit-gh-pulls)
-  (magit-mode)
   (global-set-key (kbd "M-g M-s") 'magit)
   (add-hook 'git-commit-mode-hook #'(lambda () (setq fill-column 72)))
   (add-hook 'git-commit-mode-hook 'fci-mode)
   (add-hook 'magit-mode-hook 'turn-on-magit-gh-pulls)
+  (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-upstream-or-recent)
+  (remove-hook 'magit-status-sections-hook 'magit-insert-stashes)
+  (add-hook 'magit-gh-pulls-mode-hook (lambda ()
+                                        (remove-hook 'magit-status-sections-hook 'magit-gh-pulls-insert-gh-pulls)))
 
   ;;;;
   ;;; projectile
   (setq-default projectile-completion-system 'helm)
   (require 'projectile)
   (projectile-global-mode)
-
   (helm-projectile-on)
   (global-set-key (kbd "M-p") 'projectile-find-file)
+  (global-set-key (kbd "M-t") 'projectile-find-tag)
 
   ;;;;
   ;;; company-mode
-  (add-hook 'after-init-hook 'global-company-mode))
+  (add-hook 'after-init-hook 'global-company-mode)
+
+  ;;;;
+  ;;; rspec-mode
+  (require 'rspec-mode)
+  (add-hook 'after-init-hook 'inf-ruby-switch-setup))
