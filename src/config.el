@@ -33,6 +33,9 @@
   (global-set-key (kbd "M-<down>")         'move-text-line-down)
   (global-set-key (kbd "M-<up>")           'move-text-line-up)
   (global-set-key (kbd "C-.")              'er/expand-region)
+  (global-set-key (kbd "C-, c")            'comment-region)
+
+  (define-key emacs-lisp-mode-map (kbd "C-, e") 'eval-region)
 
   ;;;
   ;; Package
