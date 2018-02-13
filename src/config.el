@@ -20,6 +20,13 @@
   (global-linum-mode 1)
   (show-paren-mode 1)
 
+  ;; Rebalance windows on split
+  (defadvice split-window-right (after rebalance-windows activate)
+    (balance-windows))
+  (defadvice delete-window (after rebalance-windows activate)
+    (balance-windows))
+
+
   (set-face-attribute 'default t :font "Hack-12")
 
   (global-set-key (kbd "C-, . f")          'open-config-file)
@@ -44,6 +51,7 @@
 
   (defvar package-list)
   (setq package-list '(
+                       define-word
                        ag
                        buffer-move
                        company
@@ -72,6 +80,8 @@
                        yasnippet
                        build-status
                        coffee-mode
+                       eyebrowse
+                       anzu
                        ))
 
   (add-to-list 'package-archives
@@ -90,7 +100,19 @@
   ;; Package Configuration
 
   ;;;;
+  ;;; anzu
+  (require 'anzu)
+
+  ;;;;
+  ;;; eyebrowse
+  (require 'eyebrowse)
+  (eyebrowse-mode t)
+  (define-key eyebrowse-mode-map (kbd "ESC M-SPC") 'eyebrowse-next-window-config)
+  (define-key eyebrowse-mode-map (kbd "ESC M-DEL") 'eyebrowse-prev-window-config)
+
+  ;;;;
   ;;; coffee-mode
+  (custom-set-variables '(coffee-tab-width 2))
   (require 'coffee-mode)
 
   ;;;;
@@ -177,15 +199,6 @@
   (nyan-mode)
 
   ;;;;
-  ;;; Spaceline
-  (setq-default powerline-default-separator 'utf-8)
-  (require 'spaceline)
-  (require 'spaceline-config)
-  (spaceline-emacs-theme)
-  (spaceline-toggle-nyan-cat-on)
-
-
-  ;;;;
   ;;; Whitespace
   (add-hook 'prog-mode-hook 'whitespace-mode)
   (add-hook 'before-save-hook 'whitespace-cleanup)
@@ -242,6 +255,7 @@
   (remove-hook 'magit-status-sections-hook 'magit-insert-stashes)
   (add-hook 'magit-gh-pulls-mode-hook (lambda ()
                                         (remove-hook 'magit-status-sections-hook 'magit-gh-pulls-insert-gh-pulls)))
+  (add-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-upstream t)
 
   ;;;;
   ;;; projectile
@@ -251,6 +265,7 @@
   (helm-projectile-on)
   (global-set-key (kbd "M-p") 'projectile-find-file)
   (global-set-key (kbd "M-t") 'projectile-find-tag)
+  (global-set-key (kbd "C-, s") 'projectile-ag)
 
   ;;;;
   ;;; company-mode
@@ -259,4 +274,22 @@
   ;;;;
   ;;; rspec-mode
   (require 'rspec-mode)
-  (add-hook 'after-init-hook 'inf-ruby-switch-setup))
+  (add-hook 'after-init-hook 'inf-ruby-switch-setup)
+
+  ;;;;
+  ;;; define-word
+  (require 'define-word)
+
+  ;;;;
+  ;;; Spaceline
+  (setq-default powerline-default-separator 'utf-8
+                spaceline-workspace-numbers-unicode t)
+  (require 'spaceline)
+  (require 'spaceline-config)
+  (apply 'spaceline--theme
+         '((workspace-number
+            buffer-modified
+            buffer-size)
+           :priority 0)
+         '((buffer-id remote-host)
+           :priority 5)))
