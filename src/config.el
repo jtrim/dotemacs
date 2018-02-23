@@ -29,114 +29,26 @@
 
   (set-face-attribute 'default t :font "Hack-12")
 
-  (global-set-key (kbd "C-, . f")          'open-config-file)
-
-  (global-set-key (kbd "C-c j")            'join-line)
-  (global-set-key (kbd "C-c n a")          'increment-number-at-point)
-  (global-set-key (kbd "C-c n x")          'decrement-number-at-point)
-  (global-set-key (kbd "C-c q")            'fill-region)
-  (global-set-key (kbd "C-c t")            'pop-tag)
-  (global-set-key (kbd "C-c y e")          'yas-expand)
-  (global-set-key (kbd "M-<down>")         'move-text-line-down)
-  (global-set-key (kbd "M-<up>")           'move-text-line-up)
-  (global-set-key (kbd "C-.")              'er/expand-region)
-  (global-set-key (kbd "C-, c")            'comment-region)
+  (global-set-key (kbd "C-, . f")  'open-config-file)
+  (global-set-key (kbd "C-c j")    'join-line)
+  (global-set-key (kbd "C-c n a")  'increment-number-at-point)
+  (global-set-key (kbd "C-c n x")  'decrement-number-at-point)
+  (global-set-key (kbd "C-c q")    'fill-region)
+  (global-set-key (kbd "C-c t")    'pop-tag)
+  (global-set-key (kbd "C-c y e")  'yas-expand)
+  (global-set-key (kbd "M-<down>") 'move-text-line-down)
+  (global-set-key (kbd "M-<up>")   'move-text-line-up)
+  (global-set-key (kbd "C-.")      'er/expand-region)
+  (global-set-key (kbd "C-, c")    'comment-or-uncomment-region)
+  (global-set-key (kbd "C--")      'text-scale-decrease)
+  (global-set-key (kbd "C-+")      'text-scale-increase)
 
   (define-key emacs-lisp-mode-map (kbd "C-, e") 'eval-region)
 
-  ;;;
-  ;; Package
-
-  (require 'package)
-
-  (defvar package-list)
-  (setq package-list '(
-                       define-word
-                       ag
-                       buffer-move
-                       company
-                       expand-region
-                       fill-column-indicator
-                       flycheck
-                       golden-ratio
-                       helm
-                       helm-ag
-                       helm-projectile
-                       iedit
-                       inf-ruby
-                       magit
-                       nyan-mode
-                       projectile
-                       spaceline
-                       spacemacs-theme
-                       magit-gh-pulls
-                       markdown-mode
-                       rainbow-delimiters
-                       rspec-mode
-                       rubocop
-                       smart-mode-line
-                       smartparens
-                       yaml-mode
-                       yasnippet
-                       build-status
-                       coffee-mode
-                       eyebrowse
-                       anzu
-                       ))
-
-  (add-to-list 'package-archives
-               '("melpa" . "https://melpa.org/packages/") t)
-
-  (package-initialize)
-
-  (unless package-archive-contents
-    (package-refresh-contents))
-
-  (dolist (pkg package-list)
-    (unless (package-installed-p pkg)
-      (package-install pkg)))
-
-  ;;;
-  ;; Package Configuration
+  ;;; Built-in packages
 
   ;;;;
-  ;;; anzu
-  (require 'anzu)
-
-  ;;;;
-  ;;; eyebrowse
-  (require 'eyebrowse)
-  (eyebrowse-mode t)
-  (define-key eyebrowse-mode-map (kbd "ESC M-SPC") 'eyebrowse-next-window-config)
-  (define-key eyebrowse-mode-map (kbd "ESC M-DEL") 'eyebrowse-prev-window-config)
-
-  ;;;;
-  ;;; coffee-mode
-  (custom-set-variables '(coffee-tab-width 2))
-  (require 'coffee-mode)
-
-  ;;;;
-  ;;; buffer-move
-  (require 'buffer-move)
-
-  ;;;;
-  ;;; expand-region
-  (require 'expand-region)
-
-  ;;;;
-  ;;; build-status
-  (setq-default build-status-check-interval 60)
-  (require 'build-status)
-  (put 'build-status-mode-line-string 'risky-local-variable t)
-
-  (defun show-build-status ()
-    (async-start (lambda ()
-                   (if (not (eq (build-status--project (buffer-file-name)) nil))
-                     (build-status-mode)))))
-  (add-hook 'prog-mode-hook 'show-build-status)
-
-  ;;;;
-  ;; align
+  ;;; align
   ;;; Originals from http://d.hatena.ne.jp/rubikitch/20080227/1204051280
   ;;; Via https://github.com/jimweirich/emacs-setup-esk/blob/master/ruby-align.el
   (defun add-custom-align-mappings ()
@@ -175,121 +87,147 @@
   (global-set-key (kbd "C-, a") 'align)
 
   ;;;;
-  ;;; fill-column-indicator
-  (add-hook 'prog-mode-hook 'fci-mode)
-
-  ;;;;
-  ;;; rainbow-delimiters
-  (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
-  (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
-
-  ;;;;
-  ;;; rubocop
-  (add-hook 'ruby-mode-hook 'rubocop-mode)
-
-  ;;;;
-  ;;; Flycheck
-  (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc))
-  (require 'flycheck)
-  (add-hook 'prog-mode-hook 'flycheck-mode)
-  (add-hook 'text-mode-hook 'flyspell-mode)
-
-  ;;;;
-  ;;; Nyan
-  (nyan-mode)
-
-  ;;;;
   ;;; Whitespace
   (add-hook 'prog-mode-hook 'whitespace-mode)
   (add-hook 'before-save-hook 'whitespace-cleanup)
 
-  ;;;;
-  ;;; ruby-mode
-  (require 'smartparens-ruby)
+  ;;;
+  ;; External Package
+  (install-and-configure-packages
+   '(
+     ;; Emacs nicities
+     (windmove
+      (lambda ()
+        (windmove-default-keybindings)))
+     buffer-move
+     define-word
+     (spaceline
+      (lambda ()
+        (setq-default powerline-default-separator 'utf-8
+                      spaceline-workspace-numbers-unicode t)
+        (require 'spaceline)
+        (require 'spaceline-config)
+        (apply 'spaceline--theme
+               '((workspace-number
+                  buffer-modified
+                  buffer-size)
+                 :priority 0)
+               '((buffer-id remote-host)
+                 :priority 5))))
+     (eyebrowse
+      (lambda ()
+        (require 'eyebrowse)
+        (eyebrowse-mode t)
+        (define-key eyebrowse-mode-map (kbd "ESC M-SPC") 'eyebrowse-next-window-config)
+        (define-key eyebrowse-mode-map (kbd "ESC M-DEL") 'eyebrowse-prev-window-config)))
 
-  ;;;;
-  ;;; Theme
-  (load-theme 'spacemacs-dark t)
+     ;; Editing nicities
+     expand-region
+     (fill-column-indicator
+      (lambda ()
+        (add-hook 'prog-mode-hook 'fci-mode)))
+     iedit
+     (rainbow-delimiters
+      (lambda ()
+        (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
+        (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)))
+     (smartparens
+      (lambda ()
+        (smartparens-global-strict-mode t)))
 
-  ;;;;
-  ;;; Windmove
-  (windmove-default-keybindings)
+     ;; Searching
+     ag
 
-  ;;;;
-  ;;; Helm
-  (setq-default helm-mode-fuzzy-match t)
-  (require 'helm)
-  (require 'helm-ag)
-  (require 'helm-ring)
-  (helm-mode)
-  (global-set-key (kbd "M-x") 'helm-M-x)
-  (global-set-key (kbd "M-y") 'helm-show-kill-ring)
-  (global-set-key (kbd "C-x C-f") 'helm-find-files)
-  (define-key global-map [remap list-buffers] 'helm-mini)
-  (define-key global-map [remap find-tag]              'helm-etags-select)
-  (define-key global-map [remap xref-find-definitions] 'helm-etags-select)
-  (define-key helm-find-files-map "\t" 'helm-execute-persistent-action)
-  (add-to-list 'display-buffer-alist
-               `(,(rx bos "*helm" (* not-newline) "*" eos)
-                 (display-buffer-in-side-window)
-                 (inhibit-same-window . t)
-                 (window-height . 0.4)))
+     ;; Helm / projectile
+     (helm
+      (lambda ()
+        (setq-default helm-mode-fuzzy-match t)
+        (require 'helm)
+        (require 'helm-ring)
+        (helm-mode)
+        (global-set-key (kbd "M-x") 'helm-M-x)
+        (global-set-key (kbd "C-x C-f") 'helm-find-files)
+        (define-key global-map [remap list-buffers] 'helm-mini)
+        (define-key global-map [remap find-tag]              'helm-etags-select)
+        (define-key global-map [remap xref-find-definitions] 'helm-etags-select)
+        (define-key helm-find-files-map "\t" 'helm-execute-persistent-action)
+        (add-to-list 'display-buffer-alist
+                     `(,(rx bos "*helm" (* not-newline) "*" eos)
+                       (display-buffer-in-side-window)
+                       (inhibit-same-window . t)
+                       (window-height . 0.4)))
+        (global-set-key (kbd "M-y") 'helm-show-kill-ring)))
+     helm-ag
+     helm-projectile
+     (projectile
+      (lambda ()
+        (setq-default projectile-completion-system 'helm)
+        (require 'projectile)
+        (projectile-global-mode)
+        (helm-projectile-on)
+        (global-set-key (kbd "M-p") 'projectile-find-file)
+        (global-set-key (kbd "M-t") 'projectile-find-tag)
+        (global-set-key (kbd "C-, s") 'projectile-ag)))
 
-  ;;;;
-  ;;; Golden Ratio
-  ;; (golden-ratio-mode) ;; this still needs some tuning
+     ;; Completion and linting
+     (company
+      (lambda ()
+        (add-hook 'after-init-hook 'global-company-mode)
+        (add-hook 'compilation-shell-minor-mode-hook (lambda () (company-mode nil)))))
+     (flycheck
+      (lambda ()
+        (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc))
+        (require 'flycheck)
+        (add-hook 'prog-mode-hook 'flycheck-mode)
+        (add-hook 'text-mode-hook 'flyspell-mode)))
+     yasnippet
 
-  ;;;;
-  ;;; Smartparens
-  (smartparens-global-strict-mode t)
+     ;; Ruby
+     inf-ruby
+     (ruby-mode
+      (lambda ()
+        (require 'smartparens-ruby)))
+     (rspec-mode
+      (lambda ()
+        (require 'rspec-mode)
+        (add-hook 'rspec-mode-hook 'inf-ruby-switch-setup)))
+     (rubocop
+      (lambda ()
+        (add-hook 'ruby-mode-hook 'rubocop-mode)))
 
-  ;;;;
-  ;;; magit
-  (require 'magit)
-  (require 'magit-gh-pulls)
-  (global-set-key (kbd "M-g M-s") 'magit)
-  (add-hook 'git-commit-mode-hook #'(lambda () (setq fill-column 72)))
-  (add-hook 'git-commit-mode-hook 'fci-mode)
-  (add-hook 'magit-mode-hook 'turn-on-magit-gh-pulls)
-  (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-upstream-or-recent)
-  (remove-hook 'magit-status-sections-hook 'magit-insert-stashes)
-  (add-hook 'magit-gh-pulls-mode-hook (lambda ()
-                                        (remove-hook 'magit-status-sections-hook 'magit-gh-pulls-insert-gh-pulls)))
-  (add-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-upstream t)
+     ;; Git
+     (magit
+      (lambda ()
+        (require 'magit)
+        (global-set-key (kbd "M-g M-s") 'magit)
+        (add-hook 'git-commit-mode-hook #'(lambda () (setq fill-column 72)))
+        (add-hook 'git-commit-mode-hook 'fci-mode)))
+     (magit-gh-pulls
+      (lambda ()
+        (require 'magit-gh-pulls)
+        (add-hook 'magit-mode-hook 'turn-on-magit-gh-pulls)
+        (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-upstream-or-recent)
+        (remove-hook 'magit-status-sections-hook 'magit-insert-stashes)
+        (add-hook 'magit-gh-pulls-mode-hook (lambda ()
+                                              (remove-hook 'magit-status-sections-hook 'magit-gh-pulls-insert-gh-pulls)))
+        (add-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-upstream t)))
 
-  ;;;;
-  ;;; projectile
-  (setq-default projectile-completion-system 'helm)
-  (require 'projectile)
-  (projectile-global-mode)
-  (helm-projectile-on)
-  (global-set-key (kbd "M-p") 'projectile-find-file)
-  (global-set-key (kbd "M-t") 'projectile-find-tag)
-  (global-set-key (kbd "C-, s") 'projectile-ag)
+     ;; Misc
+     (nyan-mode
+      (lambda ()
+        (nyan-mode)))
 
-  ;;;;
-  ;;; company-mode
-  (add-hook 'after-init-hook 'global-company-mode)
+     ;; Themes
+     (spacemacs-theme
+      (lambda ()
+        (load-theme 'spacemacs-dark t)))
 
-  ;;;;
-  ;;; rspec-mode
-  (require 'rspec-mode)
-  (add-hook 'after-init-hook 'inf-ruby-switch-setup)
-
-  ;;;;
-  ;;; define-word
-  (require 'define-word)
-
-  ;;;;
-  ;;; Spaceline
-  (setq-default powerline-default-separator 'utf-8
-                spaceline-workspace-numbers-unicode t)
-  (require 'spaceline)
-  (require 'spaceline-config)
-  (apply 'spaceline--theme
-         '((workspace-number
-            buffer-modified
-            buffer-size)
-           :priority 0)
-         '((buffer-id remote-host)
-           :priority 5)))
+     ;; Syntax modes
+     markdown-mode
+     yaml-mode
+     slim-mode
+     (coffee-mode
+      (lambda ()
+        (custom-set-variables '(coffee-tab-width 2))
+        (require 'coffee-mode)))
+     )))
