@@ -32,3 +32,4 @@
 (user/init)
 (require 'server)
 (unless (server-running-p) (server-start))
+(put 'narrow-to-region 'disabled nil)
