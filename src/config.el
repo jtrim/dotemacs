@@ -157,7 +157,9 @@
                        (inhibit-same-window . t)
                        (window-height . 0.4)))
         (global-set-key (kbd "M-y") 'helm-show-kill-ring)))
-     helm-ag
+     (helm-ag
+      (lambda ()
+        (global-set-key (kbd "C-, r s") 'resume-last-search-buffer)))
      helm-projectile
      (projectile
       (lambda ()

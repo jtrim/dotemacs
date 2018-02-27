@@ -64,3 +64,15 @@
   (interactive)
   (split-window-right)
   (find-file (s-concat user-emacs-directory "src/config.el")))
+
+(defun resume-last-search-buffer ()
+  "open last helm-ag or hgrep buffer."
+  (interactive)
+  (cond ((get-buffer "*helm ag results*")
+         (switch-to-buffer-other-window "*helm ag results*"))
+        ((get-buffer "*helm-ag*")
+         (helm-resume "*helm-ag*"))
+        ((get-buffer "*hgrep*")
+         (switch-to-buffer-other-window "*hgrep*"))
+        (t
+         (message "No previous search buffer found"))))
