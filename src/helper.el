@@ -63,7 +63,8 @@
 (defun open-config-file ()
   (interactive)
   (split-window-right)
-  (find-file (s-concat user-emacs-directory "src/config.el")))
+  (find-file (s-concat user-emacs-directory "src/config.el"))
+  (buf-move-right))
 
 (defun resume-last-search-buffer ()
   "open last helm-ag or hgrep buffer."
@@ -76,3 +77,16 @@
          (switch-to-buffer-other-window "*hgrep*"))
         (t
          (message "No previous search buffer found"))))
+
+(defun change-global-font-size (delta)
+  (let ((current-size (font-get default-global-font-spec :size)))
+    (font-put default-global-font-spec :size (+ current-size delta))
+    (set-face-attribute 'default nil :font default-global-font-spec)))
+
+(defun increase-global-font-size ()
+  (interactive)
+  (change-global-font-size 1))
+
+(defun decrease-global-font-size ()
+  (interactive)
+  (change-global-font-size -1))

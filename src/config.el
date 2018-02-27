@@ -26,8 +26,10 @@
   (defadvice delete-window (after rebalance-windows activate)
     (balance-windows))
 
-
-  (set-face-attribute 'default t :font "Hack-12")
+  (setq default-global-font-spec (font-spec
+                                  :family "Hack"
+                                  :size   10))
+  (set-face-attribute 'default nil :font default-global-font-spec)
 
   (global-set-key (kbd "C-, . f")  'open-config-file)
   (global-set-key (kbd "C-c j")    'join-line)
@@ -40,8 +42,8 @@
   (global-set-key (kbd "M-<up>")   'move-text-line-up)
   (global-set-key (kbd "C-.")      'er/expand-region)
   (global-set-key (kbd "C-, c")    'comment-or-uncomment-region)
-  (global-set-key (kbd "C--")      'text-scale-decrease)
-  (global-set-key (kbd "C-+")      'text-scale-increase)
+  (global-set-key (kbd "C--")      'decrease-global-font-size)
+  (global-set-key (kbd "C-+")      'increase-global-font-size)
 
   (define-key emacs-lisp-mode-map (kbd "C-, e") 'eval-region)
 
