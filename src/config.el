@@ -203,7 +203,12 @@
         (require 'magit)
         (global-set-key (kbd "M-g M-s") 'magit)
         (add-hook 'git-commit-mode-hook #'(lambda () (setq fill-column 72)))
-        (add-hook 'git-commit-mode-hook 'fci-mode)))
+        (add-hook 'git-commit-mode-hook 'fci-mode)
+        (magit-define-popup-action 'magit-commit-popup
+          ?W "WIP Commit" '(lambda ()
+                             (interactive)
+                             (magit-run-git "add" ".")
+                             (magit-run-git "commit" "-am" "WIP [ci skip]" "--no-verify" "--no-gpg-sign")))))
      (magit-gh-pulls
       (lambda ()
         (require 'magit-gh-pulls)
