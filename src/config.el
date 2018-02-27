@@ -13,7 +13,7 @@
 
   (add-to-list 'load-path "~/.emacs.d/elisp")
   (add-to-list 'default-frame-alist '(fullscreen . maximized))
-  (add-to-list 'default-frame-alist '(font . "Hack-10" ))
+  (add-to-list 'default-frame-alist '(font . "Hack-12" ))
 
   (tool-bar-mode -1)
   (scroll-bar-mode -1)
