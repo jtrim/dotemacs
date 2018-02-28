@@ -28,7 +28,7 @@
 
   (setq default-global-font-spec (font-spec
                                   :family "Hack"
-                                  :size   10))
+                                  :size   12))
   (set-face-attribute 'default nil :font default-global-font-spec)
 
   (global-set-key (kbd "C-, . f")  'open-config-file)
