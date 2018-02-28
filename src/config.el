@@ -93,6 +93,11 @@
   (add-hook 'prog-mode-hook 'whitespace-mode)
   (add-hook 'before-save-hook 'whitespace-cleanup)
 
+  ;;;;
+  ;;; Tramp
+  ;;; This require is necessary to allow helm project find to work on a fresh boot of emacsclient into dired. *shrug*
+  (require 'tramp)
+
   ;;;
   ;; External Package
   (install-and-configure-packages
