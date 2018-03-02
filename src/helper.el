@@ -63,8 +63,7 @@
 (defun open-config-file ()
   (interactive)
   (split-window-right)
-  (find-file (s-concat user-emacs-directory "src/config.el"))
-  (buf-move-right))
+  (find-file (s-concat user-emacs-directory "src/config.el")))
 
 (defun resume-last-search-buffer ()
   "open last helm-ag or hgrep buffer."
@@ -90,3 +89,8 @@
 (defun decrease-global-font-size ()
   (interactive)
   (change-global-font-size -1))
+
+(defun open-org-file ()
+  (interactive)
+  (split-window-right)
+  (find-file (expand-file-name "~/Dropbox/notes.org")))

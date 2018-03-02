@@ -32,6 +32,7 @@
   (set-face-attribute 'default nil :font default-global-font-spec)
 
   (global-set-key (kbd "C-, . f")  'open-config-file)
+  (global-set-key (kbd "C-, o")    'open-org-file)
   (global-set-key (kbd "C-c j")    'join-line)
   (global-set-key (kbd "C-c n a")  'increment-number-at-point)
   (global-set-key (kbd "C-c n x")  'decrement-number-at-point)
@@ -48,6 +49,10 @@
   (define-key emacs-lisp-mode-map (kbd "C-, e") 'eval-region)
 
   ;;; Built-in packages
+
+  ;;;;
+  ;;; Org mode
+  (setq org-log-done 'time)
 
   ;;;;
   ;;; align
@@ -86,7 +91,17 @@
                    (repeat . nil)
                    (modes . '(ruby-mode)))))
   (add-hook 'align-load-hook 'add-custom-align-mappings)
-  (global-set-key (kbd "C-, a") 'align)
+  (global-set-key (kbd "C-, a a") 'align)
+  (global-set-key (kbd "C-, a =") '(lambda ()
+                                     (interactive)
+                                     (align-regexp (region-beginning) (region-end) "\\(\\s-*\\)=")))
+
+  ;;;;
+  ;;; zen-mode
+  ;; (setq-default zen-mode-margin-width 92)
+  ;; (require 'zen-mode)
+  ;; (global-set-key (kbd "C-, z") 'zen-mode)
+
 
   ;;;;
   ;;; Whitespace
@@ -98,16 +113,18 @@
   ;;; This require is necessary to allow helm project find to work on a fresh boot of emacsclient into dired. *shrug*
   (require 'tramp)
 
+  ;;;;
+  ;;; Windmove
+  (require 'windmove)
+  (windmove-default-keybindings)
+
   ;;;
   ;; External Package
   (install-and-configure-packages
    '(
      ;; Emacs nicities
-     (windmove
-      (lambda ()
-        (windmove-default-keybindings)))
-     buffer-move
-     define-word
+     ;;; buffer-move
+     ;;; define-word
      (spaceline
       (lambda ()
         (setq-default powerline-default-separator 'utf-8
@@ -121,23 +138,23 @@
                  :priority 0)
                '((buffer-id remote-host)
                  :priority 5))))
-     (eyebrowse
-      (lambda ()
-        (require 'eyebrowse)
-        (eyebrowse-mode t)
-        (define-key eyebrowse-mode-map (kbd "ESC M-SPC") 'eyebrowse-next-window-config)
-        (define-key eyebrowse-mode-map (kbd "ESC M-DEL") 'eyebrowse-prev-window-config)))
+     ;;; (eyebrowse
+     ;;;  (lambda ()
+     ;;;    (require 'eyebrowse)
+     ;;;    (eyebrowse-mode t)
+     ;;;    (define-key eyebrowse-mode-map (kbd "ESC M-SPC") 'eyebrowse-next-window-config)
+     ;;;    (define-key eyebrowse-mode-map (kbd "ESC M-DEL") 'eyebrowse-prev-window-config)))
 
      ;; Editing nicities
-     expand-region
-     (fill-column-indicator
-      (lambda ()
-        (add-hook 'prog-mode-hook 'fci-mode)))
+     ;;; expand-region
+     ;;; (fill-column-indicator
+     ;;;  (lambda ()
+     ;;;    (add-hook 'prog-mode-hook 'fci-mode)))
      iedit
-     (rainbow-delimiters
-      (lambda ()
-        (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
-        (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)))
+     ;;; (rainbow-delimiters
+     ;;;  (lambda ()
+     ;;;    (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
+     ;;;    (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)))
      (smartparens
       (lambda ()
         (smartparens-global-strict-mode t)))
@@ -155,8 +172,8 @@
         (global-set-key (kbd "M-x") 'helm-M-x)
         (global-set-key (kbd "C-x C-f") 'helm-find-files)
         (define-key global-map [remap list-buffers] 'helm-mini)
-        (define-key global-map [remap find-tag]              'helm-etags-select)
-        (define-key global-map [remap xref-find-definitions] 'helm-etags-select)
+        ;; (define-key global-map [remap find-tag]              'helm-etags-select)
+        ;; (define-key global-map [remap xref-find-definitions] 'helm-etags-select)
         (define-key helm-find-files-map "\t" 'helm-execute-persistent-action)
         (add-to-list 'display-buffer-alist
                      `(,(rx bos "*helm" (* not-newline) "*" eos)
@@ -179,17 +196,17 @@
         (global-set-key (kbd "C-, s") 'projectile-ag)))
 
      ;; Completion and linting
-     (company
-      (lambda ()
-        (add-hook 'after-init-hook 'global-company-mode)
-        (add-hook 'compilation-shell-minor-mode-hook (lambda () (company-mode nil)))))
+     ;;; (company
+     ;;;  (lambda ()
+     ;;;    (add-hook 'after-init-hook 'global-company-mode)
+     ;;;    (add-hook 'compilation-shell-minor-mode-hook (lambda () (company-mode nil)))))
      (flycheck
       (lambda ()
         (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc))
         (require 'flycheck)
         (add-hook 'prog-mode-hook 'flycheck-mode)
         (add-hook 'text-mode-hook 'flyspell-mode)))
-     yasnippet
+     ;;; yasnippet
 
      ;; Ruby
      inf-ruby
@@ -198,6 +215,7 @@
         (require 'smartparens-ruby)))
      (rspec-mode
       (lambda ()
+        (setq-default rspec-autosave-buffer nil)
         (require 'rspec-mode)
         (add-hook 'rspec-mode-hook 'inf-ruby-switch-setup)))
      (rubocop
@@ -207,10 +225,14 @@
      ;; Git
      (magit
       (lambda ()
+        (setq-default magit-save-repository-buffers nil)
         (require 'magit)
         (global-set-key (kbd "M-g M-s") 'magit)
         (add-hook 'git-commit-mode-hook #'(lambda () (setq fill-column 72)))
-        (add-hook 'git-commit-mode-hook 'fci-mode)
+        ;; (add-hook 'git-commit-mode-hook 'fci-mode)
+        (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-upstream-or-recent)
+        (remove-hook 'magit-status-sections-hook 'magit-insert-stashes)
+        (add-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-upstream t)
         (magit-define-popup-action 'magit-commit-popup
           ?W "WIP Commit" '(lambda ()
                              (interactive)
@@ -220,16 +242,13 @@
       (lambda ()
         (require 'magit-gh-pulls)
         (add-hook 'magit-mode-hook 'turn-on-magit-gh-pulls)
-        (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-upstream-or-recent)
-        (remove-hook 'magit-status-sections-hook 'magit-insert-stashes)
-        (add-hook 'magit-gh-pulls-mode-hook (lambda ()
-                                              (remove-hook 'magit-status-sections-hook 'magit-gh-pulls-insert-gh-pulls)))
-        (add-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-upstream t)))
+        ;; (add-hook 'magit-gh-pulls-mode-hook (lambda () (remove-hook 'magit-status-sections-hook 'magit-gh-pulls-insert-gh-pulls)))
+        ))
 
      ;; Misc
-     (nyan-mode
-      (lambda ()
-        (nyan-mode)))
+     ;;; (nyan-mode
+     ;;;  (lambda ()
+     ;;;    (nyan-mode)))
 
      ;; Themes
      (spacemacs-theme
@@ -243,5 +262,4 @@
      (coffee-mode
       (lambda ()
         (custom-set-variables '(coffee-tab-width 2))
-        (require 'coffee-mode)))
-     )))
+        (require 'coffee-mode))))))
