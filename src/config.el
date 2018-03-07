@@ -52,6 +52,7 @@
 
   ;;;;
   ;;; Org mode
+  (setq org-replace-disputed-keys t)
   (setq org-log-done 'time)
 
   ;;;;
