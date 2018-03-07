@@ -213,7 +213,8 @@
      inf-ruby
      (ruby-mode
       (lambda ()
-        (require 'smartparens-ruby)))
+        (require 'smartparens-ruby)
+        (define-key ruby-mode-map (kbd "C-, b") 'ruby-change-to-multi-line-keyword-args)))
      (rspec-mode
       (lambda ()
         (setq-default rspec-autosave-buffer nil)

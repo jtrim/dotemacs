@@ -94,3 +94,18 @@
   (interactive)
   (split-window-right)
   (find-file (expand-file-name "~/Dropbox/notes.org")))
+
+(defun ruby-change-to-multi-line-keyword-args (from to)
+  (interactive (list (region-beginning) (region-end)))
+  (let (s outputS)
+    (setq s       (buffer-substring-no-properties from to))
+    (setq outputS (replace-regexp-in-string ", " ",\n" s))
+
+    (save-excursion
+      (delete-region from to)
+      (goto-char from)
+      (insert outputS)
+      (indent-region from to)
+      (goto-char from)
+      (search-forward ")")
+      (align from (point)))))
