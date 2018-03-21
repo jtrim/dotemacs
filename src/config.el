@@ -53,6 +53,15 @@
   ;;; Built-in packages
 
   ;;;;
+  ;;; vc
+  ;; Turn off vc, prefer magit
+  (setq vc-handled-backends nil)
+
+  ;;;;
+  ;;; electric indent
+  (setq auto-indent-newline-function 'newline-and-indent)
+
+  ;;;;
   ;;; Org mode
   (setq org-replace-disputed-keys t)
   (setq org-log-done 'time)
@@ -212,16 +221,21 @@
      ;;; yasnippet
 
      ;; Ruby
-     inf-ruby
+     (inf-ruby
+      (lambda ()
+        (require 'inf-ruby)
+        (add-hook 'compilation-filter-hook 'inf-ruby-auto-enter)))
      (ruby-mode
       (lambda ()
         (require 'smartparens-ruby)
+        (require 'ruby-mode)
         (define-key ruby-mode-map (kbd "C-, b") 'ruby-change-to-multi-line-keyword-args)))
      (rspec-mode
       (lambda ()
         (setq-default rspec-autosave-buffer nil)
         (require 'rspec-mode)
-        (add-hook 'rspec-mode-hook 'inf-ruby-switch-setup)))
+        (add-hook 'rspec-compilation-mode-hook 'inf-ruby-switch-setup)
+        (add-hook 'dired-mode-hook 'rspec-dired-mode)))
      (rubocop
       (lambda ()
         (add-hook 'ruby-mode-hook 'rubocop-mode)))
@@ -230,6 +244,7 @@
      (magit
       (lambda ()
         (setq-default magit-save-repository-buffers nil)
+        (setq magit-refresh-status-buffer nil)
         (require 'magit)
         (global-set-key (kbd "M-g M-s") 'magit)
         (add-hook 'git-commit-mode-hook #'(lambda () (setq fill-column 72)))
@@ -241,7 +256,9 @@
           ?W "WIP Commit" '(lambda ()
                              (interactive)
                              (magit-run-git "add" ".")
-                             (magit-run-git "commit" "-am" "WIP [ci skip]" "--no-verify" "--no-gpg-sign")))))
+                             (magit-run-git "commit" "-am" "WIP [ci skip]" "--no-verify" "--no-gpg-sign")))
+        ;; Speed up commit window by turning off the automatic diff
+        (remove-hook 'server-switch-hook 'magit-commit-diff)))
      (magit-gh-pulls
       (lambda ()
         (require 'magit-gh-pulls)
