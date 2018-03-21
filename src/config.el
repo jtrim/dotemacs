@@ -101,9 +101,9 @@
 
   ;;;;
   ;;; zen-mode
-  ;; (setq-default zen-mode-margin-width 92)
-  ;; (require 'zen-mode)
-  ;; (global-set-key (kbd "C-, z") 'zen-mode)
+  (require 'zen-mode)
+  (global-set-key (kbd "C-, z") 'zen-mode)
+  (add-hook 'zen-mode-hook (lambda () (interactive) (setq-local zen-mode-margin-width 92)))
 
 
   ;;;;
