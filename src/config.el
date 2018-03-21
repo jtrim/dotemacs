@@ -19,6 +19,8 @@
   (scroll-bar-mode -1)
   (global-linum-mode 1)
   (show-paren-mode 1)
+  (defalias 'yes-or-no-p 'y-or-n-p)
+  (setq tags-revert-without-query 1)
 
   ;; Rebalance windows on split
   (defadvice split-window-right (after rebalance-windows activate)
