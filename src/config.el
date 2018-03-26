@@ -33,22 +33,30 @@
                                   :size   12))
   (set-face-attribute 'default nil :font default-global-font-spec)
 
+  ;; Leader mappings
   (global-set-key (kbd "C-, . f")  'open-config-file)
   (global-set-key (kbd "C-, o")    'open-org-file)
+  (global-set-key (kbd "C-, c")    'comment-or-uncomment-region)
+  (global-set-key (kbd "C-, t")    'projectile-regen-etags)
+  (global-set-key (kbd "C-, z")    'projectile-regen-etags)
+  (define-key emacs-lisp-mode-map (kbd "C-, e") 'eval-region)
+
+  ;; C-c mappings
   (global-set-key (kbd "C-c j")    'join-line)
   (global-set-key (kbd "C-c n a")  'increment-number-at-point)
   (global-set-key (kbd "C-c n x")  'decrement-number-at-point)
   (global-set-key (kbd "C-c q")    'fill-region)
   (global-set-key (kbd "C-c t")    'pop-tag)
   (global-set-key (kbd "C-c y e")  'yas-expand)
+
+  ;; Various mappings
   (global-set-key (kbd "M-<down>") 'move-text-line-down)
   (global-set-key (kbd "M-<up>")   'move-text-line-up)
   (global-set-key (kbd "C-.")      'er/expand-region)
-  (global-set-key (kbd "C-, c")    'comment-or-uncomment-region)
   (global-set-key (kbd "C--")      'decrease-global-font-size)
   (global-set-key (kbd "C-+")      'increase-global-font-size)
 
-  (define-key emacs-lisp-mode-map (kbd "C-, e") 'eval-region)
+
 
   ;;; Built-in packages
 
@@ -107,13 +115,6 @@
   (global-set-key (kbd "C-, a =") '(lambda ()
                                      (interactive)
                                      (align-regexp (region-beginning) (region-end) "\\(\\s-*\\)=")))
-
-  ;;;;
-  ;;; zen-mode
-  (require 'zen-mode)
-  (global-set-key (kbd "C-, z") 'zen-mode)
-  (add-hook 'zen-mode-hook (lambda () (interactive) (setq-local zen-mode-margin-width 92)))
-
 
   ;;;;
   ;;; Whitespace

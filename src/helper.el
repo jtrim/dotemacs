@@ -1,5 +1,5 @@
 ;;;
-;; Helper functions
+;; helper functions
 
 (defun parse-database-url (database-url)
   (let ((parsed-url
@@ -109,3 +109,33 @@
       (goto-char from)
       (search-forward ")")
       (align from (point)))))
+
+(defvar-local go-focus-enabled nil)
+(defun go-focus ()
+  (interactive)
+  (setq left-margin-width 92)
+  (setq right-margin-width 92)
+  (visual-line-mode 1)
+  (linum-mode -1)
+  (set-window-buffer nil (current-buffer))
+  (setq-local go-focus-enabled t))
+
+(defun no-focus ()
+  (interactive)
+  (setq left-margin-width 0)
+  (setq right-margin-width 0)
+  (linum-mode 1)
+  (visual-line-mode -1)
+  (set-window-buffer nil (current-buffer))
+  (setq-local go-focus-enabled nil))
+
+(defun toggle-go-focus ()
+  (interactive)
+  (if (eq go-focus-enabled nil)
+    (go-focus)
+    (no-focus)))
+
+(defun projectile-regen-etags ()
+  (interactive)
+  (projectile-with-default-dir (projectile-project-root)
+    (shell-command "ctags -e")))
