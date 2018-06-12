@@ -7,11 +7,11 @@
                  (s-split "[@:/]"
                           (s-replace "postgres://" "" database-url))))
         (h (make-hash-table)))
-    (puthash :user (first parsed-url) h)
-    (puthash :password (second parsed-url) h)
-    (puthash :host (third parsed-url) h)
-    (puthash :port (first (last (butlast parsed-url))) h)
-    (puthash :database (first (last parsed-url)) h)
+    (puthash :user (cl-first parsed-url) h)
+    (puthash :password (cl-second parsed-url) h)
+    (puthash :host (cl-third parsed-url) h)
+    (puthash :port (cl-first (last (butlast parsed-url))) h)
+    (puthash :database (cl-first (last parsed-url)) h)
     h))
 
 (defun pivotal-tracker-number-from-branch-list (branch-list)
@@ -110,32 +110,82 @@
       (search-forward ")")
       (align from (point)))))
 
-(defvar-local go-focus-enabled nil)
-(defun go-focus ()
+(defvar focus-mode-margin-width 120)
+(defun focus-mode--go-focus ()
   (interactive)
-  (setq left-margin-width 92)
-  (setq right-margin-width 92)
-  (visual-line-mode 1)
+  (focus-mode--set-focus-margins focus-mode-margin-width)
+  (if (derived-mode-p 'prog-mode)
+      (visual-line-mode -1)
+    (visual-line-mode 1))
   (linum-mode -1)
-  (set-window-buffer nil (current-buffer))
-  (setq-local go-focus-enabled t))
+  (set-window-buffer nil (current-buffer)))
 
-(defun no-focus ()
+(defun focus-mode--no-focus ()
   (interactive)
-  (setq left-margin-width 0)
-  (setq right-margin-width 0)
+  (focus-mode--set-focus-margins 0)
   (linum-mode 1)
   (visual-line-mode -1)
-  (set-window-buffer nil (current-buffer))
-  (setq-local go-focus-enabled nil))
+  (set-window-buffer nil (current-buffer)))
 
-(defun toggle-go-focus ()
-  (interactive)
-  (if (eq go-focus-enabled nil)
-    (go-focus)
-    (no-focus)))
+(defun focus-mode--set-focus-margins (margin-width)
+  (setq left-margin-width margin-width)
+  (setq right-margin-width margin-width))
+
+(define-minor-mode focus-mode
+  "todo - make a docstring"
+  :init-value nil
+  :lighter "•`_´•"
+  (progn
+    (if focus-mode
+        (focus-mode--go-focus)
+      (focus-mode--no-focus))))
+
+;; Apparently this doesn't exist?
+;; (add-variable-watcher 'focus-mode-margin-width (lambda (sym newval op wh) (focus-mode--set-focus-margins newval)))
 
 (defun projectile-regen-etags ()
   (interactive)
   (projectile-with-default-dir (projectile-project-root)
     (shell-command "ctags -e")))
+
+(defun getmd5 ()
+  (interactive)
+  (kill-new (md5 (current-buffer) (region-beginning) (region-end)) nil))
+
+(defun upcase-sql-keywords ()
+  (interactive)
+  (save-excursion
+    (dolist (keywords sql-mode-postgres-font-lock-keywords)
+      (goto-char (point-min))
+      (while (re-search-forward (car keywords) nil t)
+        (goto-char (+ 1 (match-beginning 0)))
+        (when (eql font-lock-keyword-face (face-at-point))
+          (backward-char)
+          (upcase-word 1)
+          (forward-char))))))
+
+(defun kill-ring-save-sexp-forward ()
+  (interactive)
+  (let ((start (point)))
+    (progn
+      (forward-sexp)
+      (kill-ring-save start (point)))))
+
+(defun revert-all-buffers-dangerously ()
+  "Refreshes all open buffers from their respective files."
+  (interactive)
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf
+      (when (and (buffer-file-name) (file-exists-p (buffer-file-name)))
+        (revert-buffer t t t) )))
+  (message "Refreshed open files."))
+
+(defun sp-copy-inside-parent-sexp ()
+  (interactive)
+  (save-excursion
+    (sp-backward-up-sexp)
+    (sp-down-sexp)
+    (let ((start (point)))
+      (sp-up-sexp)
+      (sp-backward-down-sexp)
+      (kill-ring-save start (point)))))

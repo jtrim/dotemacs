@@ -6,3 +6,7 @@ projectile.cache
 recentf
 /url
 /var
+.emacs.desktop
+.emacs.desktop.lock
+eshell
+magithub

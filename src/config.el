@@ -7,18 +7,20 @@
                 inhibit-startup-screen                t
                 line-spacing                          2
                 vc-follow-symlinks                    t
-                whitespace-style                      '(trailing tabs empty indentation))
+                whitespace-style                      '(trailing tabs empty indentation)
+                split-height-threshold                nil
+                split-width-threshold                 0)
 
   (set-default 'truncate-lines t)
 
   (add-to-list 'load-path "~/.emacs.d/elisp")
   (add-to-list 'default-frame-alist '(fullscreen . maximized))
-  (add-to-list 'default-frame-alist '(font . "Hack-12" ))
 
   (tool-bar-mode -1)
   (scroll-bar-mode -1)
   (global-linum-mode 1)
   (show-paren-mode 1)
+  (desktop-save-mode 1)
   (defalias 'yes-or-no-p 'y-or-n-p)
   (setq tags-revert-without-query 1)
 
@@ -27,10 +29,12 @@
     (balance-windows))
   (defadvice delete-window (after rebalance-windows activate)
     (balance-windows))
+  (defadvice split-window-below (after rebalance-windows activate)
+    (balance-windows))
 
   (setq default-global-font-spec (font-spec
-                                  :family "Hack"
-                                  :size   12))
+                                  :family "Fira Code"
+                                  :size   14))
   (set-face-attribute 'default nil :font default-global-font-spec)
 
   ;; Leader mappings
@@ -38,7 +42,7 @@
   (global-set-key (kbd "C-, o")    'open-org-file)
   (global-set-key (kbd "C-, c")    'comment-or-uncomment-region)
   (global-set-key (kbd "C-, t")    'projectile-regen-etags)
-  (global-set-key (kbd "C-, z")    'projectile-regen-etags)
+  (global-set-key (kbd "C-, z")    'focus-mode)
   (define-key emacs-lisp-mode-map (kbd "C-, e") 'eval-region)
 
   ;; C-c mappings
@@ -49,14 +53,25 @@
   (global-set-key (kbd "C-c t")    'pop-tag)
   (global-set-key (kbd "C-c y e")  'yas-expand)
 
+  ;; Unset key
+  (global-unset-key (kbd "s-p")) ;; crashes emacs.
+  (global-unset-key (kbd "s-w")) ;; is stupid.
+  (global-unset-key (kbd "s-q")) ;; is unnecessary.
+  (global-unset-key (kbd "<f11>"))
+  (global-unset-key (kbd "<f12>"))
+
   ;; Various mappings
   (global-set-key (kbd "M-<down>") 'move-text-line-down)
   (global-set-key (kbd "M-<up>")   'move-text-line-up)
   (global-set-key (kbd "C-.")      'er/expand-region)
   (global-set-key (kbd "C--")      'decrease-global-font-size)
   (global-set-key (kbd "C-+")      'increase-global-font-size)
-
-
+  (global-set-key (kbd "C-c <backspace>") (lambda () (interactive) (jump-to-register 1)))
+  (global-set-key (kbd "C-c SPC") (lambda () (interactive) (jump-to-register 2)))
+  (global-set-key (kbd "<f11> <f11>") (lambda () (interactive) (window-configuration-to-register 1)))
+  (global-set-key (kbd "<f12> <f12>") (lambda () (interactive) (window-configuration-to-register 2)))
+  (global-set-key (kbd "C-, w") 'kill-ring-save-sexp-forward)
+  (global-set-key (kbd "C-, y") 'sp-copy-inside-parent-sexp)
 
   ;;; Built-in packages
 
@@ -71,8 +86,20 @@
 
   ;;;;
   ;;; Org mode
-  (setq org-replace-disputed-keys t)
-  (setq org-log-done 'time)
+  (setq org-replace-disputed-keys  t
+        org-log-done               'time
+        org-confirm-babel-evaluate nil)
+  ;; (add-to-list 'org-babel-load-languages '(ruby . t))
+  ;; (add-to-list 'org-babel-load-languages '(js . t))
+  ;; (add-to-list 'org-babel-load-languages '(sql . t))
+  ;; (add-to-list 'org-babel-load-languages '(python . t))
+
+  ;;;;
+  ;;; imenu
+
+  (require 'imenu)
+  (setq imenu-max-item-length 300)
+  (global-set-key (kbd "M-i") 'helm-imenu)
 
   ;;;;
   ;;; align
@@ -111,7 +138,7 @@
                    (repeat . nil)
                    (modes . '(ruby-mode)))))
   (add-hook 'align-load-hook 'add-custom-align-mappings)
-  (global-set-key (kbd "C-, a a") 'align)
+  (global-set-key (kbd "C-, a a") 'align-current)
   (global-set-key (kbd "C-, a =") '(lambda ()
                                      (interactive)
                                      (align-regexp (region-beginning) (region-end) "\\(\\s-*\\)=")))
@@ -131,10 +158,20 @@
   (require 'windmove)
   (windmove-default-keybindings)
 
+  ;;;;
+  ;;; magit-rspec
+  (require 'magit-rspec)
+
   ;;;
   ;; External Package
   (install-and-configure-packages
    '(
+     ;; Packages to evaluate
+     (annotate
+      (lambda ()
+        (require 'annotate)
+        (global-set-key (kbd "C-, a") 'annotate-annotate)))
+
      ;; Emacs nicities
      ;;; buffer-move
      ;;; define-word
@@ -164,13 +201,15 @@
      ;;;  (lambda ()
      ;;;    (add-hook 'prog-mode-hook 'fci-mode)))
      iedit
-     ;;; (rainbow-delimiters
-     ;;;  (lambda ()
-     ;;;    (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
-     ;;;    (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)))
+     (rainbow-delimiters
+      (lambda ()
+        (require 'rainbow-delimiters)
+        (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
+        (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)))
      (smartparens
       (lambda ()
-        (smartparens-global-strict-mode t)))
+        (smartparens-global-strict-mode t)
+        (global-set-key (kbd "C-M-g") 'sp-forward-slurp-sexp)))
 
      ;; Searching
      ag
@@ -193,6 +232,9 @@
                        (display-buffer-in-side-window)
                        (inhibit-same-window . t)
                        (window-height . 0.4)))
+        (add-hook 'helm-major-mode-hook
+                  (lambda ()
+                    (setq auto-composition-mode nil)))
         (global-set-key (kbd "M-y") 'helm-show-kill-ring)))
      (helm-ag
       (lambda ()
@@ -213,6 +255,10 @@
      ;;;  (lambda ()
      ;;;    (add-hook 'after-init-hook 'global-company-mode)
      ;;;    (add-hook 'compilation-shell-minor-mode-hook (lambda () (company-mode nil)))))
+     (flyspell
+      (lambda ()
+        (require 'flyspell)
+        (define-key flyspell-mode-map (kbd "C-,") nil)))
      (flycheck
       (lambda ()
         (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc))
@@ -236,10 +282,12 @@
         (setq-default rspec-autosave-buffer nil)
         (require 'rspec-mode)
         (add-hook 'rspec-compilation-mode-hook 'inf-ruby-switch-setup)
+        (add-hook 'rspec-compilation-mode-hook (lambda () (setq auto-composition-mode nil)))
         (add-hook 'dired-mode-hook 'rspec-dired-mode)))
      (rubocop
       (lambda ()
         (add-hook 'ruby-mode-hook 'rubocop-mode)))
+     chruby
 
      ;; Git
      (magit
@@ -260,17 +308,16 @@
                              (magit-run-git "commit" "-am" "WIP [ci skip]" "--no-verify" "--no-gpg-sign")))
         ;; Speed up commit window by turning off the automatic diff
         (remove-hook 'server-switch-hook 'magit-commit-diff)))
-     (magit-gh-pulls
+     (magithub
       (lambda ()
-        (require 'magit-gh-pulls)
-        (add-hook 'magit-mode-hook 'turn-on-magit-gh-pulls)
-        ;; (add-hook 'magit-gh-pulls-mode-hook (lambda () (remove-hook 'magit-status-sections-hook 'magit-gh-pulls-insert-gh-pulls)))
-        ))
-
-     ;; Misc
-     ;;; (nyan-mode
-     ;;;  (lambda ()
-     ;;;    (nyan-mode)))
+        (require 'magithub)
+        (magithub-feature-autoinject t)))
+     ;; (magit-gh-pulls
+     ;;  (lambda ()
+     ;;    (require 'magit-gh-pulls)
+     ;;    (add-hook 'magit-mode-hook 'turn-on-magit-gh-pulls)
+     ;;    ;; (add-hook 'magit-gh-pulls-mode-hook (lambda () (remove-hook 'magit-status-sections-hook 'magit-gh-pulls-insert-gh-pulls)))
+     ;;    ))
 
      ;; Themes
      (spacemacs-theme
