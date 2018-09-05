@@ -20,7 +20,7 @@
   (scroll-bar-mode -1)
   (global-linum-mode 1)
   (show-paren-mode 1)
-  (desktop-save-mode 1)
+  (desktop-save-mode -1)
   (defalias 'yes-or-no-p 'y-or-n-p)
   (setq tags-revert-without-query 1)
 
@@ -31,11 +31,22 @@
     (balance-windows))
   (defadvice split-window-below (after rebalance-windows activate)
     (balance-windows))
+  (defadvice xref-goto-xref (after close-xref-buffer activate)
+    (kill-xref-window-and-buffer))
 
   (setq default-global-font-spec (font-spec
                                   :family "Fira Code"
                                   :size   14))
   (set-face-attribute 'default nil :font default-global-font-spec)
+
+  ;; Disable auto-indent for text-mode
+  (add-hook 'text-mode-hook 'set-noop-indent-line-function)
+
+  ;; Scratch buffer configuration
+  (setq initial-major-mode 'markdown-mode)
+  (setq initial-scratch-message "# Scratch
+
+")
 
   ;; Leader mappings
   (global-set-key (kbd "C-, . f")  'open-config-file)
@@ -72,6 +83,10 @@
   (global-set-key (kbd "<f12> <f12>") (lambda () (interactive) (window-configuration-to-register 2)))
   (global-set-key (kbd "C-, w") 'kill-ring-save-sexp-forward)
   (global-set-key (kbd "C-, y") 'sp-copy-inside-parent-sexp)
+  (global-set-key (kbd "C-<tab>") 'hs-toggle-hiding)
+
+  ;; Misc other things
+  (add-hook 'compilation-finish-functions 'bury-compile-buffer-if-successful)
 
   ;;; Built-in packages
 
@@ -86,17 +101,11 @@
 
   ;;;;
   ;;; Org mode
-  (setq org-replace-disputed-keys  t
-        org-log-done               'time
-        org-confirm-babel-evaluate nil)
-  ;; (add-to-list 'org-babel-load-languages '(ruby . t))
-  ;; (add-to-list 'org-babel-load-languages '(js . t))
-  ;; (add-to-list 'org-babel-load-languages '(sql . t))
-  ;; (add-to-list 'org-babel-load-languages '(python . t))
+  ;; (setq org-replace-disputed-keys  t
+  ;;       org-log-done               'time)
 
   ;;;;
   ;;; imenu
-
   (require 'imenu)
   (setq imenu-max-item-length 300)
   (global-set-key (kbd "M-i") 'helm-imenu)
@@ -151,7 +160,7 @@
   ;;;;
   ;;; Tramp
   ;;; This require is necessary to allow helm project find to work on a fresh boot of emacsclient into dired. *shrug*
-  (require 'tramp)
+  ;; (require 'tramp)
 
   ;;;;
   ;;; Windmove
@@ -159,22 +168,18 @@
   (windmove-default-keybindings)
 
   ;;;;
-  ;;; magit-rspec
-  (require 'magit-rspec)
+  ;;; HideShow
+  (require 'hideshow)
+  (add-to-list 'hs-special-modes-alist
+               '(ruby-mode
+                 "\\(def\\|do\\|{\\)" "\\(end\\|end\\|}\\)" "#"
+                 nil nil))
 
   ;;;
   ;; External Package
   (install-and-configure-packages
    '(
-     ;; Packages to evaluate
-     (annotate
-      (lambda ()
-        (require 'annotate)
-        (global-set-key (kbd "C-, a") 'annotate-annotate)))
-
      ;; Emacs nicities
-     ;;; buffer-move
-     ;;; define-word
      (spaceline
       (lambda ()
         (setq-default powerline-default-separator 'utf-8
@@ -188,18 +193,8 @@
                  :priority 0)
                '((buffer-id remote-host)
                  :priority 5))))
-     ;;; (eyebrowse
-     ;;;  (lambda ()
-     ;;;    (require 'eyebrowse)
-     ;;;    (eyebrowse-mode t)
-     ;;;    (define-key eyebrowse-mode-map (kbd "ESC M-SPC") 'eyebrowse-next-window-config)
-     ;;;    (define-key eyebrowse-mode-map (kbd "ESC M-DEL") 'eyebrowse-prev-window-config)))
 
      ;; Editing nicities
-     ;;; expand-region
-     ;;; (fill-column-indicator
-     ;;;  (lambda ()
-     ;;;    (add-hook 'prog-mode-hook 'fci-mode)))
      iedit
      (rainbow-delimiters
       (lambda ()
@@ -210,6 +205,10 @@
       (lambda ()
         (smartparens-global-strict-mode t)
         (global-set-key (kbd "C-M-g") 'sp-forward-slurp-sexp)))
+     (which-key
+      (lambda ()
+        (require 'which-key)
+        (which-key-mode)))
 
      ;; Searching
      ag
@@ -217,15 +216,14 @@
      ;; Helm / projectile
      (helm
       (lambda ()
-        (setq-default helm-mode-fuzzy-match t)
+        (setq-default helm-mode-fuzzy-match t
+                      helm-candidate-number-limit 2000)
         (require 'helm)
         (require 'helm-ring)
         (helm-mode)
         (global-set-key (kbd "M-x") 'helm-M-x)
         (global-set-key (kbd "C-x C-f") 'helm-find-files)
         (define-key global-map [remap list-buffers] 'helm-mini)
-        ;; (define-key global-map [remap find-tag]              'helm-etags-select)
-        ;; (define-key global-map [remap xref-find-definitions] 'helm-etags-select)
         (define-key helm-find-files-map "\t" 'helm-execute-persistent-action)
         (add-to-list 'display-buffer-alist
                      `(,(rx bos "*helm" (* not-newline) "*" eos)
@@ -251,10 +249,6 @@
         (global-set-key (kbd "C-, s") 'projectile-ag)))
 
      ;; Completion and linting
-     ;;; (company
-     ;;;  (lambda ()
-     ;;;    (add-hook 'after-init-hook 'global-company-mode)
-     ;;;    (add-hook 'compilation-shell-minor-mode-hook (lambda () (company-mode nil)))))
      (flyspell
       (lambda ()
         (require 'flyspell)
@@ -265,7 +259,6 @@
         (require 'flycheck)
         (add-hook 'prog-mode-hook 'flycheck-mode)
         (add-hook 'text-mode-hook 'flyspell-mode)))
-     ;;; yasnippet
 
      ;; Ruby
      (inf-ruby
@@ -276,7 +269,8 @@
       (lambda ()
         (require 'smartparens-ruby)
         (require 'ruby-mode)
-        (define-key ruby-mode-map (kbd "C-, b") 'ruby-change-to-multi-line-keyword-args)))
+        (define-key ruby-mode-map (kbd "C-, b") 'ruby-change-to-multi-line-keyword-args)
+        (add-hook 'ruby-mode-hook (lambda () (hs-minor-mode)))))
      (rspec-mode
       (lambda ()
         (setq-default rspec-autosave-buffer nil)
@@ -288,6 +282,7 @@
       (lambda ()
         (add-hook 'ruby-mode-hook 'rubocop-mode)))
      chruby
+     yari
 
      ;; Git
      (magit
@@ -297,7 +292,6 @@
         (require 'magit)
         (global-set-key (kbd "M-g M-s") 'magit)
         (add-hook 'git-commit-mode-hook #'(lambda () (setq fill-column 72)))
-        ;; (add-hook 'git-commit-mode-hook 'fci-mode)
         (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-upstream-or-recent)
         (remove-hook 'magit-status-sections-hook 'magit-insert-stashes)
         (add-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-upstream t)
@@ -312,12 +306,6 @@
       (lambda ()
         (require 'magithub)
         (magithub-feature-autoinject t)))
-     ;; (magit-gh-pulls
-     ;;  (lambda ()
-     ;;    (require 'magit-gh-pulls)
-     ;;    (add-hook 'magit-mode-hook 'turn-on-magit-gh-pulls)
-     ;;    ;; (add-hook 'magit-gh-pulls-mode-hook (lambda () (remove-hook 'magit-status-sections-hook 'magit-gh-pulls-insert-gh-pulls)))
-     ;;    ))
 
      ;; Themes
      (spacemacs-theme
@@ -325,10 +313,24 @@
         (load-theme 'spacemacs-dark t)))
 
      ;; Syntax modes
-     markdown-mode
+     (markdown-mode
+      (lambda()
+        (require 'markdown-mode)
+        (add-hook 'markdown-mode-hook 'turn-off-smartparens-strict-mode)))
      yaml-mode
      slim-mode
      (coffee-mode
       (lambda ()
         (custom-set-variables '(coffee-tab-width 2))
-        (require 'coffee-mode))))))
+        (require 'coffee-mode)))
+     (yasnippet
+      (lambda ()
+        (setq-default yas-snippet-dirs "~/.emacs.d/snippets")
+        (require 'yasnippet)
+        (yas-global-mode 1)))))
+
+  ;;;;
+  ;;; magit-rspec
+  ;;; depends on both magit and rspec
+  (require 'magit-rspec)
+  (define-key rspec-mode-map (kbd "C-c , g") 'magit-rspec-run-changed-files))

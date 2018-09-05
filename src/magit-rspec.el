@@ -7,7 +7,7 @@
 
 (defun magit-rspec--changed-file-paths ()
   (mapcar 'car (mapcar (lambda (path) (projectile-expand-paths (list path)))
-                       (mapcar 'car (magit-file-status)))))
+                       (mapcar 'car (magit-file-status "-uall")))))
 
 (defun magit-rspec--changed-spec-file-paths ()
   (let ((ruby-files (seq-filter (lambda (path) (string-suffix-p ".rb" path)) (magit-rspec--changed-file-paths))))

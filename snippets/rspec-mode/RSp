@@ -1,0 +1,5 @@
+require 'rails_helper'
+
+RSpec.describe $1 do
+  ${2:$$(yas-choose-value '("it " "describe " "context "))}'$3'
+end

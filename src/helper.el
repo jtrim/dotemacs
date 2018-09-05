@@ -105,10 +105,7 @@
       (delete-region from to)
       (goto-char from)
       (insert outputS)
-      (indent-region from to)
-      (goto-char from)
-      (search-forward ")")
-      (align from (point)))))
+      (indent-region from to))))
 
 (defvar focus-mode-margin-width 120)
 (defun focus-mode--go-focus ()
@@ -189,3 +186,61 @@
       (sp-up-sexp)
       (sp-backward-down-sexp)
       (kill-ring-save start (point)))))
+
+(defun set-noop-indent-line-function ()
+  (setq-local indent-line-function
+              (lambda () (interactive))))
+
+(defun open-line-in-github ()
+  (interactive)
+  (let ((repo (magithub-repo)))
+    (let ((base-url (let-alist repo .html_url))
+          (current-file (magit-current-file))
+          (current-commit (magit-rev-parse "HEAD"))
+          (current-line (number-to-string (line-number-at-pos))))
+      (shell-command (concat "open " base-url "/tree/" current-commit "/" current-file "#L" current-line)))))
+
+(defun bury-compile-buffer-if-successful (buffer string)
+  "Bury a compilation buffer if succeeded without warnings "
+  (when (and
+         (buffer-live-p buffer)
+         (string-match "compilation" (buffer-name buffer))
+         (string-match "finished" string)
+         (not
+          (with-current-buffer buffer
+            (goto-char (point-min))
+            (search-forward "warning" nil t))))
+    (unless (eq (window-buffer (selected-window)) buffer)
+      (run-with-timer 0.5 nil
+                      (lambda (buf) (delete-window (get-buffer-window buf)))
+                      buffer))))
+
+(defun ruby-unalign-region (from to)
+  (interactive (list (region-beginning) (region-end)))
+  (save-excursion
+    (goto-char from)
+    (search-forward ":")
+    (let ((found-p nil))
+      (while (and (< (point) to) (not found-p))
+        (let ((current-from (point)))
+          (progn
+            (search-forward-regexp "[^ ]")
+            (if (eq (+ 1 current-from) (point))
+                (progn
+                  (forward-line)
+                  (back-to-indentation))
+              (progn
+                (backward-char)
+                (delete-region current-from (point))
+                (insert-char ?\s)
+                (forward-line)
+                (back-to-indentation)
+                (unless
+                    (search-forward ":" nil t)
+                  (setq found-p t))))))))))
+
+(defun kill-xref-window-and-buffer ()
+  (let ((xref-buffer (get-buffer "*xerf*")))
+    (progn
+      (delete-window (get-buffer-window xref-buffer))
+      (kill-buffer xref-buffer))))

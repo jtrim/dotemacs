@@ -1,0 +1,3 @@
+describe '$1' do
+  ${2:$$(yas-choose-value '("it " "context " "describe "))}'${3:is tested}'
+end
