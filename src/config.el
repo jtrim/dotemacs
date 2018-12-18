@@ -33,6 +33,8 @@
     (balance-windows))
   (defadvice xref-goto-xref (after close-xref-buffer activate)
     (kill-xref-window-and-buffer))
+  (defadvice delete-other-windows (before snapshot-window-config activate)
+    (window-configuration-to-register 1))
 
   (setq default-global-font-spec (font-spec
                                   :family "Fira Code"
@@ -264,7 +266,9 @@
      (inf-ruby
       (lambda ()
         (require 'inf-ruby)
-        (add-hook 'compilation-filter-hook 'inf-ruby-auto-enter)))
+        (add-hook 'compilation-filter-hook 'inf-ruby-auto-enter)
+        (define-key inf-ruby-minor-mode-map
+          (kbd "C-c C-s") 'inf-ruby-console-auto)))
      (ruby-mode
       (lambda ()
         (require 'smartparens-ruby)
@@ -283,6 +287,11 @@
         (add-hook 'ruby-mode-hook 'rubocop-mode)))
      chruby
      yari
+     (robe
+      (lambda ()
+        (require 'robe)
+        (add-hook 'ruby-mode-hook 'robe-mode)
+        (define-key robe-mode-map (kbd "M-.") nil)))
 
      ;; Git
      (magit
@@ -325,9 +334,31 @@
         (require 'coffee-mode)))
      (yasnippet
       (lambda ()
-        (setq-default yas-snippet-dirs "~/.emacs.d/snippets")
         (require 'yasnippet)
-        (yas-global-mode 1)))))
+        ;;(add-to-list yas-snippet-dirs "~/.emacs.d/snippets")
+        (yas-global-mode 1)))
+     (slack
+      (lambda ()
+        (require 'slack)))
+
+     ;; (xterm-color
+     ;;  (lambda ()
+     ;;    (setq comint-output-filter-functions
+     ;;          (remove 'ansi-color-process-output comint-output-filter-functions))
+
+     ;;    (add-hook 'shell-mode-hook
+     ;;              (lambda () (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter nil t)))
+
+     ;;    ;; Also set TERM accordingly (xterm-256color)
+     ;;    ;; You can also use it with eshell (and thus get color output from system ls):
+     ;;    (require 'eshell)
+
+     ;;    (add-hook 'eshell-before-prompt-hook
+     ;;              (lambda () (setq xterm-color-preserve-properties t)))
+
+     ;;    (add-to-list 'eshell-preoutput-filter-functions 'xterm-color-filter)
+     ;;    (setq eshell-output-filter-functions (remove 'eshell-handle-ansi-color eshell-output-filter-functions))))
+     ))
 
   ;;;;
   ;;; magit-rspec

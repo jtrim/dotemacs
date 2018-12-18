@@ -244,3 +244,23 @@
     (progn
       (delete-window (get-buffer-window xref-buffer))
       (kill-buffer xref-buffer))))
+
+;; WIP
+;; TODO: look into (helm ...) and helm-source documentation
+(defun load-gem-tags ()
+  (interactive)
+  (let ((ruby-version-string (shell-command-to-string "ruby -e 'print RUBY_VERSION'")))
+    (let ((gem-directory-contents (directory-files (concat "~/.gem/ruby/" ruby-version-string "/gems"))))
+      (print gem-directory-contents))))
+
+(defun inf-ruby-console-heroku-staging ()
+  (interactive)
+  (inf-ruby-console-run "heroku run rails c -a wunder-portal-staging" "heroku console staging"))
+
+(defun inf-ruby-console-heroku-production-read ()
+  (interactive)
+  (inf-ruby-console-run "heroku run rails c --sandbox -a wunder-portal-production-read" "heroku readonly production console"))
+
+(defun inf-ruby-console-heroku-production-write ()
+  (interactive)
+  (inf-ruby-console-run "heroku run rails c -a wunder-portal-production" "heroku write production console"))
