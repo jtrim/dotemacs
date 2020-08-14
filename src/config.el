@@ -35,6 +35,9 @@
     (kill-xref-window-and-buffer))
   (defadvice delete-other-windows (before snapshot-window-config activate)
     (window-configuration-to-register 1))
+  (defadvice term-handle-exit
+      (after term-kill-buffer-on-exit activate)
+    (kill-buffer))
 
   (setq default-global-font-spec (font-spec
                                   :family "Fira Code"
@@ -49,6 +52,7 @@
   (setq initial-scratch-message "# Scratch
 
 ")
+  (setq explicit-shell-file-name "/usr/local/bin/zsh")
 
   ;; Leader mappings
   (global-set-key (kbd "C-, . f")  'open-config-file)
@@ -65,6 +69,10 @@
   (global-set-key (kbd "C-c q")    'fill-region)
   (global-set-key (kbd "C-c t")    'pop-tag)
   (global-set-key (kbd "C-c y e")  'yas-expand)
+  (global-set-key (kbd "C-c y t")  (lambda () (interactive) (term explicit-shell-file-name)))
+  (global-set-key (kbd "C-c e")    'find-file-at-point-with-line)
+  (global-set-key (kbd "C-c <backspace>") (lambda () (interactive) (jump-to-register 1)))
+  (global-set-key (kbd "C-c SPC")  (lambda () (interactive) (jump-to-register 2)))
 
   ;; Unset key
   (global-unset-key (kbd "s-p")) ;; crashes emacs.
@@ -79,18 +87,21 @@
   (global-set-key (kbd "C-.")      'er/expand-region)
   (global-set-key (kbd "C--")      'decrease-global-font-size)
   (global-set-key (kbd "C-+")      'increase-global-font-size)
-  (global-set-key (kbd "C-c <backspace>") (lambda () (interactive) (jump-to-register 1)))
-  (global-set-key (kbd "C-c SPC") (lambda () (interactive) (jump-to-register 2)))
   (global-set-key (kbd "<f11> <f11>") (lambda () (interactive) (window-configuration-to-register 1)))
   (global-set-key (kbd "<f12> <f12>") (lambda () (interactive) (window-configuration-to-register 2)))
   (global-set-key (kbd "C-, w") 'kill-ring-save-sexp-forward)
   (global-set-key (kbd "C-, y") 'sp-copy-inside-parent-sexp)
   (global-set-key (kbd "C-<tab>") 'hs-toggle-hiding)
+  (global-set-key (kbd "C-o") 'new-line-above)
 
   ;; Misc other things
   (add-hook 'compilation-finish-functions 'bury-compile-buffer-if-successful)
 
   ;;; Built-in packages
+
+  ;;;;
+  ;;; js mode
+  (setq js-indent-level 2)
 
   ;;;;
   ;;; vc
@@ -177,6 +188,15 @@
                  "\\(def\\|do\\|{\\)" "\\(end\\|end\\|}\\)" "#"
                  nil nil))
 
+  ;;;;
+  ;;; html mode
+  (add-hook 'html-mode-hook
+            (lambda ()
+              (progn
+                (setq
+                 indent-line-function 'sgml-indent-line
+                 sgml-basic-offset 2))))
+
   ;;;
   ;; External Package
   (install-and-configure-packages
@@ -248,7 +268,8 @@
         (helm-projectile-on)
         (global-set-key (kbd "M-p") 'projectile-find-file)
         (global-set-key (kbd "M-t") 'projectile-find-tag)
-        (global-set-key (kbd "C-, s") 'projectile-ag)))
+        (global-set-key (kbd "C-, s") 'projectile-ag)
+        (add-to-list 'projectile-project-root-files-bottom-up ".projroot")))
 
      ;; Completion and linting
      (flyspell
@@ -278,9 +299,11 @@
      (rspec-mode
       (lambda ()
         (setq-default rspec-autosave-buffer nil)
+        (setq-default rspec-keep-buffer-active nil)
+        (setq-default rspec-use-spring-when-possible nil)
         (require 'rspec-mode)
         (add-hook 'rspec-compilation-mode-hook 'inf-ruby-switch-setup)
-        (add-hook 'rspec-compilation-mode-hook (lambda () (setq auto-composition-mode nil)))
+        (add-hook 'rspec-compilation-mode-hook (lambda () (progn (setq auto-composition-mode nil))))
         (add-hook 'dired-mode-hook 'rspec-dired-mode)))
      (rubocop
       (lambda ()
@@ -292,6 +315,9 @@
         (require 'robe)
         (add-hook 'ruby-mode-hook 'robe-mode)
         (define-key robe-mode-map (kbd "M-.") nil)))
+
+     ;; Kotlin
+     kotlin-mode
 
      ;; Git
      (magit
@@ -337,28 +363,7 @@
         (require 'yasnippet)
         ;;(add-to-list yas-snippet-dirs "~/.emacs.d/snippets")
         (yas-global-mode 1)))
-     (slack
-      (lambda ()
-        (require 'slack)))
-
-     ;; (xterm-color
-     ;;  (lambda ()
-     ;;    (setq comint-output-filter-functions
-     ;;          (remove 'ansi-color-process-output comint-output-filter-functions))
-
-     ;;    (add-hook 'shell-mode-hook
-     ;;              (lambda () (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter nil t)))
-
-     ;;    ;; Also set TERM accordingly (xterm-256color)
-     ;;    ;; You can also use it with eshell (and thus get color output from system ls):
-     ;;    (require 'eshell)
-
-     ;;    (add-hook 'eshell-before-prompt-hook
-     ;;              (lambda () (setq xterm-color-preserve-properties t)))
-
-     ;;    (add-to-list 'eshell-preoutput-filter-functions 'xterm-color-filter)
-     ;;    (setq eshell-output-filter-functions (remove 'eshell-handle-ansi-color eshell-output-filter-functions))))
-     ))
+     elixir-mode))
 
   ;;;;
   ;;; magit-rspec

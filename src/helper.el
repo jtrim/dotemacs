@@ -206,6 +206,7 @@
          (buffer-live-p buffer)
          (string-match "compilation" (buffer-name buffer))
          (string-match "finished" string)
+         (not rspec-keep-buffer-active)
          (not
           (with-current-buffer buffer
             (goto-char (point-min))
@@ -253,14 +254,51 @@
     (let ((gem-directory-contents (directory-files (concat "~/.gem/ruby/" ruby-version-string "/gems"))))
       (print gem-directory-contents))))
 
-(defun inf-ruby-console-heroku-staging ()
-  (interactive)
-  (inf-ruby-console-run "heroku run rails c -a wunder-portal-staging" "heroku console staging"))
+;; Leaving this in place for posterity
+;; (defun inf-ruby-console-heroku-staging ()
+;;   (interactive)
+;;   (inf-ruby-console-run "heroku run rails c -a REDACTED" "heroku console staging"))
 
-(defun inf-ruby-console-heroku-production-read ()
+(defun current-file-name-to-kill-ring ()
+  "Put the current file name on the kill ring"
   (interactive)
-  (inf-ruby-console-run "heroku run rails c --sandbox -a wunder-portal-production-read" "heroku readonly production console"))
+  (let ((filename (if (equal major-mode 'dired-mode)
+                      default-directory
+                    (buffer-file-name))))
+    (when filename
+      (with-temp-buffer
+        (insert filename)
+        (clipboard-kill-region (point-min) (point-max)))
+      (message filename))))
 
-(defun inf-ruby-console-heroku-production-write ()
+(defun new-line-above ()
   (interactive)
-  (inf-ruby-console-run "heroku run rails c -a wunder-portal-production" "heroku write production console"))
+  (back-to-indentation)
+  (newline-and-indent)
+  (previous-line)
+  (indent-according-to-mode))
+
+(defun uniquify-buffer-lines ()
+    "Remove duplicate adjacent lines in the current buffer."
+    (interactive)
+    (uniquify-region-lines (point-min) (point-max)))
+
+(defun uniquify-region-lines (beg end)
+    "Remove duplicate adjacent lines in region."
+    (interactive "*r")
+    (save-excursion
+      (goto-char beg)
+      (while (re-search-forward "^\\(.*\n\\)\\1+" end t)
+        (replace-match "\\1"))))
+
+(defun find-file-at-point-with-line()
+  "if file has an attached line num goto that line, ie boom.rb:12"
+  (interactive)
+  (setq line-num 0)
+  (save-excursion
+    (search-forward-regexp "[^ ]:" (point-max) t)
+    (if (looking-at "[0-9]+")
+         (setq line-num (string-to-number (buffer-substring (match-beginning 0) (match-end 0))))))
+  (find-file-at-point)
+  (if (not (equal line-num 0))
+      (goto-line line-num)))

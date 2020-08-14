@@ -39,6 +39,9 @@
 (add-hook 'smerge-mode-hook
           (lambda ()
             (setq auto-composition-mode nil)))
+(add-hook 'term-mode-hook
+          (lambda ()
+            (setq auto-composition-mode nil)))
 
 ;;;
 ;; Custom
@@ -54,7 +57,7 @@
     ("bffa9739ce0752a37d9b1eee78fc00ba159748f50dc328af4be661484848e476" "fa2b58bb98b62c3b8cf3b6f02f058ef7827a8e497125de0254f56e373abee088")))
  '(package-selected-packages
    (quote
-    (slack json-mode robe xterm-color which-key markdown-mode yari yasnippet scala-mode define-word coffee-mode slim-mode yaml-mode magithub magit))))
+    (elixir-mode handlebars-mode kotlin-mode slack json-mode robe xterm-color which-key markdown-mode yari yasnippet scala-mode define-word coffee-mode slim-mode yaml-mode magithub magit))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
